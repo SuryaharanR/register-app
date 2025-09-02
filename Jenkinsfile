@@ -9,8 +9,8 @@ pipeline {
     environment {
         APP_NAME    = "register-app-pipeline"
         RELEASE     = "1.0.0"
-        DOCKER_USER = "haransurya"
-        IMAGE_NAME  = "haransurya/${APP_NAME}"
+        DOCKER_USER = "suryaharanr"
+        IMAGE_NAME  = "suryaharanr/${APP_NAME}"
         IMAGE_TAG   = "${RELEASE}-${BUILD_NUMBER}"
     }
 
@@ -63,7 +63,7 @@ pipeline {
             steps {
                 script {
                     withDockerRegistry([credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/']) {
-                        def dockerImage = docker.build("haransurya/register-app:${BUILD_NUMBER}")
+                        def dockerImage = docker.build("suryaharanr/register-app:${BUILD_NUMBER}")
                         dockerImage.push("${BUILD_NUMBER}")
                         dockerImage.push("latest")
                     }
