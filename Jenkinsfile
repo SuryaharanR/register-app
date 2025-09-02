@@ -8,9 +8,11 @@ pipeline {
     environment {
         APP_NAME   = "register-app-pipeline"
         RELEASE    = "1.0.0"
-        IMAGE_NAME = "haransurya/${APP_NAME}"
+        DOCKER_USER = "suryaharanr"  
+        DOCKER_PASS = credentials('dockerhub')
+        IMAGE_NAME = "suryaharanr/${APP_NAME}"
         IMAGE_TAG  = "${RELEASE}-${BUILD_NUMBER}"
-        DOCKER_CREDS = credentials('dockerhub')  // <-- Jenkins credentials ID
+        // DOCKER_PASS = credentials('dockerhub')  // <-- Jenkins credentials ID
     }
 
     stages {
