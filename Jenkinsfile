@@ -69,7 +69,9 @@ pipeline {
                     }
                 }
             }
+        
         }
+        
 
         // stage("Trivy Scan") {
         //     steps {
@@ -106,7 +108,7 @@ pipeline {
         //         }
         //     }
         // }
-    
+    }
 
     // post {
     //     failure {
