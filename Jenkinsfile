@@ -9,10 +9,8 @@ pipeline {
         APP_NAME   = "register-app-pipeline"
         RELEASE    = "1.0.0"
         DOCKER_USER = "haransurya"  
-        DOCKER_CREDS = credentials('dockerhub')
-        IMAGE_NAME = "suryaharanr/${APP_NAME}"
+        IMAGE_NAME = "haransurya/${APP_NAME}"
         IMAGE_TAG  = "${RELEASE}-${BUILD_NUMBER}"
-        // DOCKER_PASS = credentials('dockerhub')  // <-- Jenkins credentials ID
     }
 
     stages {
@@ -58,17 +56,18 @@ pipeline {
             }
         }
 
-        stage("Build & Push Docker Image") {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDS) {
-                        def docker_image = docker.build("${IMAGE_NAME}")
-                        docker_image.push("${IMAGE_TAG}")
-                        docker_image.push("latest")
-                    }
-                }
+       stage("Docker Build & Push") {
+           steps {
+               script {
+                   withDockerRegistry([credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/']) {
+                   def dockerImage = docker.build("haransurya/register-app:${BUILD_NUMBER}")
+                   dockerImage.push()
+                   dockerImage.push("latest")
             }
         }
+    }
+}
+
 
         // stage("Trivy Scan") {
         //     steps {
