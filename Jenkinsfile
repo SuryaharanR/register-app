@@ -1,16 +1,17 @@
 pipeline {
     agent { label 'Jenkins-Agent' }
+
     tools {
         jdk 'Java17'
         maven 'Maven3'
     }
 
     environment {
-        APP_NAME   = "register-app-pipeline"
-        RELEASE    = "1.0.0"
-        DOCKER_USER = "haransurya"  
-        IMAGE_NAME = "haransurya/${APP_NAME}"
-        IMAGE_TAG  = "${RELEASE}-${BUILD_NUMBER}"
+        APP_NAME    = "register-app-pipeline"
+        RELEASE     = "1.0.0"
+        DOCKER_USER = "haransurya"
+        IMAGE_NAME  = "haransurya/${APP_NAME}"
+        IMAGE_TAG   = "${RELEASE}-${BUILD_NUMBER}"
     }
 
     stages {
@@ -22,7 +23,9 @@ pipeline {
 
         stage("Checkout from SCM") {
             steps {
-                git branch: 'main', credentialsId: 'github', url: 'https://github.com/SuryaharanR/register-app'
+                git branch: 'main',
+                    credentialsId: 'github',
+                    url: 'https://github.com/SuryaharanR/register-app'
             }
         }
 
@@ -44,7 +47,7 @@ pipeline {
                     withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') {
                         sh "mvn sonar:sonar"
                     }
-                }    
+                }
             }
         }
 
@@ -52,36 +55,40 @@ pipeline {
             steps {
                 script {
                     waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
-                }    
+                }
             }
         }
 
-       stage("Docker Build & Push") {
-           steps {
-               script {
-                   withDockerRegistry([credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/']) {
-                   def dockerImage = docker.build("haransurya/register-app:${BUILD_NUMBER}")
-                   dockerImage.push()
-                   dockerImage.push("latest")
+        stage("Docker Build & Push") {
+            steps {
+                script {
+                    withDockerRegistry([credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/']) {
+                        def dockerImage = docker.build("haransurya/register-app:${BUILD_NUMBER}")
+                        dockerImage.push("${BUILD_NUMBER}")
+                        dockerImage.push("latest")
+                    }
+                }
             }
         }
-    }
-}
-
 
         // stage("Trivy Scan") {
         //     steps {
         //         script {
-        //             sh ('docker run -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image ashfaque9x/register-app-pipeline:latest --no-progress --scanners vuln  --exit-code 0 --severity HIGH,CRITICAL --format table')
+        //             sh """
+        //             docker run -v /var/run/docker.sock:/var/run/docker.sock \
+        //             aquasec/trivy image haransurya/register-app:latest \
+        //             --no-progress --scanners vuln --exit-code 0 \
+        //             --severity HIGH,CRITICAL --format table
+        //             """
         //         }
         //     }
         // }
 
-        // stage('Cleanup Artifacts') {
+        // stage("Cleanup Artifacts") {
         //     steps {
         //         script {
-        //             sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG}"
-        //             sh "docker rmi ${IMAGE_NAME}:latest"
+        //             sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
+        //             sh "docker rmi ${IMAGE_NAME}:latest || true"
         //         }
         //     }
         // }
@@ -89,7 +96,13 @@ pipeline {
         // stage("Trigger CD Pipeline") {
         //     steps {
         //         script {
-        //             sh "curl -v -k --user clouduser:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'ec2-13-232-128-192.ap-south-1.compute.amazonaws.com:8080/job/gitops-register-app-cd/buildWithParameters?token=gitops-token'"
+        //             sh """
+        //             curl -v -k --user clouduser:${JENKINS_API_TOKEN} \
+        //             -X POST -H 'cache-control: no-cache' \
+        //             -H 'content-type: application/x-www-form-urlencoded' \
+        //             --data 'IMAGE_TAG=${IMAGE_TAG}' \
+        //             'http://ec2-13-232-128-192.ap-south-1.compute.amazonaws.com:8080/job/gitops-register-app-cd/buildWithParameters?token=gitops-token'
+        //             """
         //         }
         //     }
         // }
@@ -97,14 +110,20 @@ pipeline {
 
     // post {
     //     failure {
-    //         emailext body: '''${SCRIPT, template="groovy-html.template"}''',
-    //                  subject: "${env.JOB_NAME} - Build # ${env.BUILD_NUMBER} - Failed",
-    //                  mimeType: 'text/html', to: "ashfaque.s510@gmail.com"
+    //         emailext(
+    //             body: '''${SCRIPT, template="groovy-html.template"}''',
+    //             subject: "${env.JOB_NAME} - Build # ${env.BUILD_NUMBER} - Failed",
+    //             mimeType: 'text/html',
+    //             to: "ashfaque.s510@gmail.com"
+    //         )
     //     }
     //     success {
-    //         emailext body: '''${SCRIPT, template="groovy-html.template"}''',
-    //                  subject: "${env.JOB_NAME} - Build # ${env.BUILD_NUMBER} - Successful",
-    //                  mimeType: 'text/html', to: "ashfaque.s510@gmail.com"
+    //         emailext(
+    //             body: '''${SCRIPT, template="groovy-html.template"}''',
+    //             subject: "${env.JOB_NAME} - Build # ${env.BUILD_NUMBER} - Successful",
+    //             mimeType: 'text/html',
+    //             to: "ashfaque.s510@gmail.com"
+    //         )
     //     }
     // }
 }
